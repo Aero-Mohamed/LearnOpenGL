@@ -21,7 +21,7 @@ void Renderer::clear(float r, float g, float b, float a) const
 {
     // Set Screen Color
     GlCall(glClearColor(r, g, b, a));
-    GlCall(glClear(GL_COLOR_BUFFER_BIT));
+    GlCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void Renderer::draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader)

@@ -10,6 +10,7 @@ private:
     int m_width;
     int m_height;
     int m_aspectRatioDivider;
+    float m_aspectRatio;
 
     glm::mat4 m_projMat;
 
@@ -18,12 +19,14 @@ public:
         :m_width(width), m_height(height)
     {
         this->estimateAspectRatioDivider(width, height);
-        this->updateProjMat();
+        m_aspectRatio = width*1.0f / height;
+        m_projMat = glm::mat4(1.0);
     }
     ~WindowObject() {};
 
     inline int getWidth() { return m_width; }
     inline int getHeight() { return m_height; }
+    inline float getAspectRatio() { return m_aspectRatio; }
     inline glm::mat4 getProjMat() { return m_projMat; }
 
     void setWidth(int width) {
