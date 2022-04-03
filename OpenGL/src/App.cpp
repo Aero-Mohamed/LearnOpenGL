@@ -4,6 +4,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 #include <string>
 #include "WindowObject.h"
@@ -43,6 +47,17 @@ int main(void)
     // Intervel param: Is the minimum number of screen updates 
     // to wait for until the buffers are swapped
     glfwSwapInterval(1); 
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
 
     /* Initialize GLEW Library */
     if (glewInit() != GLEW_OK) {
@@ -98,13 +113,31 @@ int main(void)
         shader.unbind(); texture.unbind();
         va.unbind(); vb.unbind(); ib.unbind();
 
+
+        glm::vec3 translation = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), translation);
+        glm::mat4 mvp = windowObject.getProjMat() * modelMat;
+
+        
+        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
         int i = 0;
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
+            renderer.clear(0.2f, 0.3f, 0.3f, 1.0f);
+
+            // Start the Dear ImGui frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+
             /* handle Resizing: udpate projection matrix if window been resized */
-            if (windowObject.getHeight() != w_Height || windowObject.getWidth() != w_Width)
-                windowObject.update(w_Width, w_Height);
+            if (windowObject.getHeight() != w_Height || windowObject.getWidth() != w_Width) {
+                //windowObject.update(w_Width, w_Height);
+            }
+                
 
             if (i > 180)
                 i = 0;
@@ -114,26 +147,57 @@ int main(void)
             /*
             * Render here
             */
-            renderer.clear(0.2f, 0.3f, 0.3f, 1.0f);
-
+            
             texture.bind();
-            shader.bind();            
+            shader.bind();     
 
-            shader.setUniformMat4f("u_MVP", windowObject.getProjMat());
+            modelMat = glm::translate(glm::mat4(1.0f), translation);
+            mvp = windowObject.getProjMat() * modelMat;
+            shader.setUniformMat4f("u_MVP", mvp);
+            
             float color = sin(i * 3.14 / 180);
             shader.setUniform4f("u_Color", color, color, color, 1.0f);
             shader.setUniform1i("u_Texture", 0);
 
             /* Triangle :) */
             renderer.draw(va, ib, shader);
+
+
+            {
+                static int counter = 0;
+
+                ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+                ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+                ImGui::SliderFloat("Translate X", &translation.x, -1.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+                ImGui::SliderFloat("Translate Y", &translation.y, -1.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+                ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+                if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                    counter++;
+                ImGui::SameLine();
+                ImGui::Text("counter = %d", counter);
+
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                ImGui::End();
+            }
+
+
            
 
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
             /* Poll for and process events */
             glfwPollEvents();
         }        
     }
+
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glfwTerminate(); // it returns error, !
     return 0;
 }

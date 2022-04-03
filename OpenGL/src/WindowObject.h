@@ -47,10 +47,13 @@ public:
         float b = (float)(m_height / (2.0 * m_aspectRatioDivider));
 
         m_projMat = glm::ortho(
-            -a / std::max(a, b),
-            a / std::max(a, b),
-            -b / std::max(a, b),
-            b / std::max(a, b));
+            -a / std::max(a, b), // -ve x
+            a / std::max(a, b),  // +ve x
+            -b / std::max(a, b), // -ve y
+            b / std::max(a, b),  // +ve y
+            -1.0f,               // -ve z
+            1.0f                 // +ve z
+        ); 
     }
 
     void update(int width, int height) {
