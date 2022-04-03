@@ -10,7 +10,6 @@
 #define GlCall(X) GlClearError(); X; ASSERT(GlLogCall(#X, __FILE__, __LINE__))
 
 void GlClearError();
-
 bool GlLogCall(const char* function, const char* file, int line);
 
 
